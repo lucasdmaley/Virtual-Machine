@@ -1,0 +1,45 @@
+README
+HW7: Profiling
+Lucas Maley (lmaley01) and Colby Cho (ccho02)
+_______________________________________________________________________________
+
+                            |------------------|
+                            | Acknowledgements |
+|---------------------------|------------------|------------------------------|
+  TA office hours
+|-----------------------------------------------------------------------------|
+
+                        |--------------------------|
+                        | Analysis of Machine Code |
+|-----------------------|--------------------------|--------------------------|
+Most Expensive Operation:
+The most time expensive operation in our program is the switch statement used 
+to discern which set of instructions to run given an opcode. From what we gather
+based on our assembly code, there are no obvious optimizations to this code. 
+Registers are used appropriately (there are no calls to the stack pointer) and 
+there does not appear to be any unnecessary memory accesses. There also does 
+not appear to be any unnecessary computation in our switch statement.
+
+The first instruction compares 13 with the value in %rax, which contains the 
+op code of the instruction to execute. This is necessary to check if the 
+default case has to be invoked.
+
+The second instruction jumps to the default case if %rax > 13.
+
+The third instruction calculates the memory address of the relevant case by 
+multiplying the opcode. In using this calculation, there is no need to check 
+for specific values of opcodes (as an if/else statement would), hence this 
+seems the most efficient method of going to the relevant code to execute.
+
+The absence of the stack pointer in our assembly code suggests that most if not
+all of the registers are being used to efficiently hold memory data rather 
+than being monitored on the stack.
+|-----------------------------------------------------------------------------|
+
+
+                              |------------|
+                              | Time Spent |
+|-----------------------------|------------|----------------------------------|
+  Time spent analyzing the assignment: 3 hours
+  Time spent solving the problems after analysis: 18 hours
+|-----------------------------------------------------------------------------|

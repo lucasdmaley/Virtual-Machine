@@ -1,0 +1,196 @@
+README
+HW6: UM
+Lucas Maley (lmaley01) and Colby Cho (ccho02)
+_______________________________________________________________________________
+
+                            |------------------|
+                            | Acknowledgements |
+|---------------------------|------------------|------------------------------|
+  TA office hours
+|-----------------------------------------------------------------------------|
+
+                  |------------------------------------|
+                  | Correct / Incorrect Implementation |
+|---------|-------|------------------------------------|----------------------|
+| Correct |
+|---------|
+ - Universal Machine module (um.c & um.h)
+    Architecture of a universal machine, declaration and initialization of 
+    segment 0 with a given file containing UM instructions
+ - Universal Machine Instructions module (umInstructions.c & umInstructions.h)
+    To our knowledge, all of our instructions have been correctly implemented. 
+    They pass our unit tests and are able to function consecutively when called
+    from any of the provided collection of instructions (in the given .um and 
+    .umz files).
+ - Driver (driver.c)
+    A driver which handles the command line, creates an instance of a UM, 
+    initializes it, and calls the execution cycle on it, freeing allocated 
+    memory unless reaching a failure mode.
+|-----------|
+| Incorrect |
+|-----------|
+    Due to time constraints, we were unable to halt execution with a 
+    checked runtime error given resource exhaustion 
+|-----------------------------------------------------------------------------|
+
+              |--------------------------------------------|
+              | Significant Departures from Initial Design |
+|-------------|--------------------------------------------|------------------|
+  As we were implementing the segment load and store instruction functions, 
+  we realized that we had no means of accessing the length (i.e., number of 
+  instructions) of a given segment based on the current architecture. To solve
+  this issue, we decided to add another sequence to our UM struct. This 
+  sequence keeps track of the lengths of mapped segments, where the indices of
+  this sequence are equal to the mapped segment IDs. In this manner, we always
+  have access to the length of a given mapped segment. 
+|-----------------------------------------------------------------------------|
+
+                            |--------------|
+                            | Architecture |
+|---------------------------|--------------|----------------------------------|
+  Our UM's segmented memory is comprised of a Hanson Sequence where each index 
+  in the sequence points to either a segment of memory or is null. A segment is
+  represented by a C array of Um_instructions (which are uint32_t under the 
+  hood). There may be (2^32)-1 segments and (2^32)-1 instructions in each 
+  segment (i.e., the length of both the sequence and array may not surpass this
+  limit). There also exists another Hanson sequence that keeps track of 
+  unmapped IDs (of type uint32_t). Another uint32_t C array holds registers and
+  their respective values. A third Hanson sequence holds the lengths (the 
+  number of instructions) of mapped segments. Finally, we have a program 
+  counter that indicates the current instruction within segment zero. All of 
+  the aforementioned structures are contained within our UM struct. 
+
+  We have three main modules. 
+    1. The UM driver (main) - (driver.c).
+      This module checks for correct file input, makes calls to initialize the 
+      UM and load the UM (by calls to UM architecture), and execute 
+      instructions (by calling the execution cycle defined in our UM 
+      instruction set). 
+    2. Our UM architecture - (um.c, um.h). 
+      This module contains the definitions and implementations to the functions
+      that initialize the UM and load the UM.
+    3. Our UM instruction set - (umInstructions.c, umInstructions.h).
+      This module contains secret implementations of each possible instruction,
+      as well as the execution cycle (which can be called externally). It takes
+      in and updates a UM struct, as defined in our UM architecture.
+|-----------------------------------------------------------------------------|
+
+                               |--------|
+                               | Timing |
+|------------------------------|--------|-------------------------------------|
+  Time to execute 50 million instructions: 
+    2.35 seconds. To calculate this we used the shell "time" command to test 
+    how long our Universal Machine took on an instruction set of known size 
+    (midmark, being approximately 80 million instructions - this took our UM 
+    implementation 3.76 seconds), and multiplying this by 5/8 to get the 
+    approximate time taken to calculate 50 million instructions.
+|-----------------------------------------------------------------------------|
+
+                               |---------|
+                               | UMTESTS |
+|------------------------------|---------|------------------------------------|
+  UMTESTS
+   - add-complete.um
+    WHAT: A more extensive test for our add instruction implementation
+    HOW: Adds registers with numbers of different magnitudes and outputs the
+         results
+   - load-initialized_segment.um
+    WHAT: A test for our load program instruction implementation
+    HOW: After loading a newly mapped segment with the halt instruction, load 
+         this segment into segment 0 such that the next instruction is the halt
+         instruction and the program counter is reset
+   - nand-complete.um
+    WHAT: Extensively tests our bitwise_NAND instruction implementation
+    HOW: "NANDs" registers with numbers of different magnitudes and outputs 
+         the results
+   - add.um
+    WHAT: Tests our add instruction implementation
+    HOW: Adds two registers
+   - load-mapped_program.um
+    WHAT: Tests the map and load program implementations in succession
+    HOW: After mapping a program, loads this program
+   - print-six.um
+    WHAT: Tests our output instruction implementation 
+    HOW: Adds two registers and outputs the result
+   - branch.um
+    WHAT: Tests our load program instruction implementation
+    HOW: Inserts arbitrary data into the instruction stream (several halt 
+         instructions) and precedes this data with a load program instruction 
+         that is supposed to branch around this data
+   - print.um
+    WHAT: Tests our add and print instruction implementations
+    HOW: Adds two registers and outputs the sum
+   - conditional_move-complete.um
+    WHAT: Tests our conditional move instruction implementation
+    HOW: Loads values into registers, calls the condition move instruction on 
+         these registers, and outputs the result. This process is done twice 
+         for certain values.
+   - load-seg0.um
+    WHAT: Tests our load program instruction implementation for segment zero
+    HOW: Calls load program on segment zero
+   - div-complete.um
+    WHAT: Tests our divide instruction implementation
+    HOW: divides registers with numbers of different magnitudes and outputs the
+         results
+   - load-unmapped_program.um
+    WHAT: Tests our unmap/load program instruction implementation
+    HOW: After unmapping a segment, calls load program on this segment - a 
+         failure mode
+   - seg0-load.um
+    WHAT: Tests the segment load/segment store/load program instruction 
+          implementations
+    HOW: segment load and segment store are called such that load program 
+         skips over an output instruction if segment load or store did not work
+   - extensive-map_unmap.um
+    WHAT: Tests our map and unmap instruction implementations
+    HOW: Calls map then unmap repeatedly in succession to stress test the 
+         instructions
+   - loop.um
+    WHAT: Tests our arithmetic and conditional move  instruction 
+          implementations
+    HOW: Runs a loop using multiply and add instructions as incrementers and 
+         bitwise_NAND, conditional_move, load_program as evaluators
+   - seg-store_load.um
+    WHAT: Tests segment store and segment load instruction implementations
+    HOW: After mapping a segment, calls segment load and segment store in 
+         succession, outputting the value stored in a register from the last 
+         segment store call
+   - halt.um
+    WHAT: Tests the halt instruction implementation
+    HOW: Calls the halt instruction
+   - map-complete.um
+    WHAT: Tests the map instruction implementation
+    HOW: Calls the map function with varying register values and outputs the 
+         current number of segments after each map call
+   - halt-verbose.um
+    WHAT: A more extensive halt test
+    HOW: Calls halt, then calls loadval and outputs the resulting register 
+         multiple times
+   - map-unmap.um
+    WHAT: Tests our map and unmap instruction implementations
+    HOW: After mapping and unmapping a segment, calls map to test that our 
+         architecture reuses the segment ID. The number of segments is 
+         outputted. 
+   - unmap-seg0.um
+    WHAT: Tests our unmap instruction implementation
+    HOW: Attempts to unmap segment zero --failure mode
+   - input-complete.um
+    WHAT: Tests our input instruction implementation
+    HOW: Takes input and outputs the input
+   - mult-complete.um
+    WHAT: A more extensive test for our multiply instruction implementation
+    HOW: multiplies registers with numbers of different magnitudes and outputs
+         the results
+   - unmap-unmappedseg.um
+    WHAT: Tests our unmap instruction implementation
+    HOW: Attempts to unmap a segment yet to be mapped --failure mode
+|-----------------------------------------------------------------------------|
+
+
+                              |------------|
+                              | Time Spent |
+|-----------------------------|------------|----------------------------------|
+  Time spent analyzing the assignment: 3 hours
+  Time spent preparing the design: 5 hours
+  Time spent solving the problems after analysis: 18 hours
+|-----------------------------------------------------------------------------|
